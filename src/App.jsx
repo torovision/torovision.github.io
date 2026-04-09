@@ -354,6 +354,7 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
   const geoControlRef = useRef(null);
+  const mapRef = useRef(null);
 
   // Fetch data
   useEffect(() => {
@@ -393,6 +394,15 @@ function App() {
       const data = await res.json();
       if (data.routes && data.routes.length > 0) {
         setRouteData(data.routes[0].geometry);
+        // Enter Drive Mode
+        mapRef.current?.flyTo({
+          center: [userLocation.lng, userLocation.lat],
+          zoom: 17,
+          pitch: 65,
+          bearing: 0,
+          padding: { bottom: 350 }, // Shift view up past the bottom sheet
+          duration: 2500
+        });
       }
     } catch (err) {
       console.error(err);
@@ -458,6 +468,7 @@ function App() {
       {/* ── MAP ── */}
       <main className="main">
         <Map
+          ref={mapRef}
           initialViewState={{ longitude: 10.1815, latitude: 36.8065, zoom: 13 }}
           mapStyle={`https://api.maptiler.com/maps/streets-v4/style.json?key=${MAPTILER_KEY}`}
           style={{ width: '100%', height: '100%' }}
