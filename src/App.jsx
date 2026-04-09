@@ -250,35 +250,48 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
   const [list, setList] = useState([...customers]);
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
+  const [coords, setCoords] = useState(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+
+  const handleGetLocation = () => {
+    setGpsLoading(true);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGpsLoading(false);
+        },
+        (err) => {
+          alert("Impossible d'obtenir la position. Veuillez autoriser le GPS.");
+          setGpsLoading(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      alert("La géolocalisation n'est pas supportée.");
+      setGpsLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     if (!newName) return;
     
-    const defaultLat = 36.8 + (Math.random() * 0.05 - 0.025);
-    const defaultLng = 10.18 + (Math.random() * 0.05 - 0.025);
+    // Use captured coords or randomized localized ones as fail-safe
+    const finalLat = coords ? coords.lat : 36.8 + (Math.random() * 0.05 - 0.025);
+    const finalLng = coords ? coords.lng : 10.18 + (Math.random() * 0.05 - 0.025);
 
-    const saveNewClient = (lat, lng) => {
-      const newCust = {
-        id: Date.now(),
-        name: newName,
-        address: newAddress || 'Position GPS',
-        lat,
-        lng
-      };
-      setList(prev => [...prev, newCust]);
-      setNewName('');
-      setNewAddress('');
+    const newCust = {
+      id: Date.now(),
+      name: newName,
+      address: newAddress || (coords ? 'Position GPS' : 'Tunis'),
+      lat: finalLat,
+      lng: finalLng
     };
-
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => saveNewClient(pos.coords.latitude, pos.coords.longitude),
-        (err) => saveNewClient(defaultLat, defaultLng),
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    } else {
-      saveNewClient(defaultLat, defaultLng);
-    }
+    
+    setList(prev => [...prev, newCust]);
+    setNewName('');
+    setNewAddress('');
+    setCoords(null);
   };
 
   return (
@@ -299,6 +312,15 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
               <span className="field__label">Adresse (Optionnel)</span>
               <input type="text" className="field__input" placeholder="Adresse" value={newAddress} onChange={e => setNewAddress(e.target.value)} />
             </label>
+            
+            <button 
+              className="btn" 
+              style={{ width: '100%', marginBottom: 12, backgroundColor: coords ? '#10b981' : '#334155', color: '#fff', border: 'none' }}
+              onClick={handleGetLocation}
+            >
+              <MapPin size={16} /> {gpsLoading ? 'Recherche...' : coords ? 'Position Capturée ✅' : 'Capturer Position GPS Actuelle'}
+            </button>
+
             <button className="btn btn-secondary" onClick={handleAdd} disabled={!newName} style={{ width: '100%' }}>
               + Ajouter Client
             </button>
