@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users } from 'lucide-react';
 import Map, { Marker, GeolocateControl } from 'react-map-gl/maplibre';
@@ -393,6 +393,7 @@ function App() {
   const [customers, setCustomers] = useState(loadCustomers);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [basket, setBasket] = useState({});
+  const geoControlRef = useRef(null);
 
   // Persist data
   useEffect(() => { saveCatalog(catalog); }, [catalog]);
@@ -460,8 +461,13 @@ function App() {
           mapStyle={`https://api.maptiler.com/maps/streets-v4/style.json?key=${MAPTILER_KEY}`}
           style={{ width: '100%', height: '100%' }}
           attributionControl={false}
+          onLoad={() => {
+            // Automatically start tracking
+            setTimeout(() => geoControlRef.current?.trigger(), 1000);
+          }}
         >
           <GeolocateControl 
+            ref={geoControlRef}
             position="bottom-right" 
             trackUserLocation 
             showUserLocation 
