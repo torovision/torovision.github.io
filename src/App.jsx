@@ -415,11 +415,21 @@ function App() {
   const [customers, setCustomers] = useState(loadCustomers);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [basket, setBasket] = useState({});
+  const [userLocation, setUserLocation] = useState(null);
   const geoControlRef = useRef(null);
 
   // Persist data
   useEffect(() => { saveCatalog(catalog); }, [catalog]);
   useEffect(() => { saveCustomers(customers); }, [customers]);
+
+  const sortedCustomers = useMemo(() => {
+    if (!userLocation) return customers;
+    return [...customers].sort((a, b) => {
+      const distA = Math.pow(userLocation.lat - a.lat, 2) + Math.pow(userLocation.lng - a.lng, 2);
+      const distB = Math.pow(userLocation.lat - b.lat, 2) + Math.pow(userLocation.lng - b.lng, 2);
+      return distA - distB;
+    });
+  }, [customers, userLocation]);
 
   const updateQuantity = (productId, type, delta) => {
     setBasket(prev => {
@@ -495,6 +505,7 @@ function App() {
             showUserLocation 
             showUserHeading 
             positionOptions={{ enableHighAccuracy: true }} 
+            onGeolocate={(e) => setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude })}
           />
           {customers.map(c => (
             <Marker key={c.id} longitude={c.lng} latitude={c.lat} anchor="bottom">
@@ -510,11 +521,26 @@ function App() {
           <div className="sheet__handle" />
           <h3 className="sheet__title">Clients</h3>
           <div className="sheet__scroll">
-            {customers.map(c => (
-              <button key={c.id} className="chip" onClick={() => openBasket(c)}>
-                <Navigation size={16} className="chip__icon" />
-                <div><span className="chip__name">{c.name}</span><span className="chip__addr">{c.address}</span></div>
-              </button>
+            {sortedCustomers.map(c => (
+              <div key={c.id} style={{ display: 'flex', gap: 8 }}>
+                <button 
+                  className="chip" 
+                  style={{ flex: 1 }}
+                  onClick={() => openBasket(c)}
+                >
+                  <div><span className="chip__name">{c.name}</span><span className="chip__addr">{c.address}</span></div>
+                </button>
+                <button 
+                  className="chip" 
+                  style={{ flex: '0 0 auto', justifyContent: 'center', background: '#3b82f6', color: '#fff' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}`, '_blank');
+                  }}
+                >
+                  <Navigation size={20} />
+                </button>
+              </div>
             ))}
           </div>
         </div>
