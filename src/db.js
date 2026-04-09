@@ -1,5 +1,5 @@
 import { db, hasFirebase } from './firebase';
-import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 
 export async function fetchCatalogFromCloud(defaultCatalog) {
   if (!hasFirebase) {
@@ -16,8 +16,7 @@ export async function fetchCatalogFromCloud(defaultCatalog) {
     const snap = await getDocs(collection(db, 'catalog'));
     if (snap.empty) {
       console.log("[db] Cloud catalog empty, uploading defaults...");
-      // Fire & forget upload
-      saveCatalogToCloud(defaultCatalog);
+      await saveCatalogToCloud(defaultCatalog);
       return defaultCatalog;
     }
     return snap.docs.map(d => d.data());
@@ -33,9 +32,22 @@ export async function saveCatalogToCloud(catalog) {
     return;
   }
   
-  Promise.all(catalog.map(item => 
-    setDoc(doc(db, 'catalog', String(item.id)), item)
-  )).catch(e => console.error("Error saving catalog to cloud:", e));
+  try {
+    // Get existing docs to find deletions
+    const snap = await getDocs(collection(db, 'catalog'));
+    const existingIds = new Set(snap.docs.map(d => d.id));
+    const newIds = new Set(catalog.map(item => String(item.id)));
+    
+    // Delete removed items
+    const deletes = [...existingIds].filter(id => !newIds.has(id)).map(id => deleteDoc(doc(db, 'catalog', id)));
+    // Upsert current items
+    const writes = catalog.map(item => setDoc(doc(db, 'catalog', String(item.id)), item));
+    
+    await Promise.all([...deletes, ...writes]);
+    console.log(`[db] Catalog synced: ${writes.length} written, ${deletes.length} deleted`);
+  } catch (e) {
+    console.error("Error saving catalog to cloud:", e);
+  }
 }
 
 export async function fetchCustomersFromCloud(defaultCustomers) {
@@ -52,8 +64,7 @@ export async function fetchCustomersFromCloud(defaultCustomers) {
     console.log("[db] Fetching Customers from Firebase Cloud...");
     const snap = await getDocs(collection(db, 'customers'));
     if (snap.empty) {
-      // Fire & forget upload
-      saveCustomersToCloud(defaultCustomers);
+      await saveCustomersToCloud(defaultCustomers);
       return defaultCustomers;
     }
     return snap.docs.map(d => d.data());
@@ -69,7 +80,20 @@ export async function saveCustomersToCloud(customers) {
     return;
   }
   
-  Promise.all(customers.map(c => 
-    setDoc(doc(db, 'customers', String(c.id)), c)
-  )).catch(e => console.error("Error saving customers to cloud:", e));
+  try {
+    // Get existing docs to find deletions
+    const snap = await getDocs(collection(db, 'customers'));
+    const existingIds = new Set(snap.docs.map(d => d.id));
+    const newIds = new Set(customers.map(c => String(c.id)));
+    
+    // Delete removed customers
+    const deletes = [...existingIds].filter(id => !newIds.has(id)).map(id => deleteDoc(doc(db, 'customers', id)));
+    // Upsert current customers
+    const writes = customers.map(c => setDoc(doc(db, 'customers', String(c.id)), c));
+    
+    await Promise.all([...deletes, ...writes]);
+    console.log(`[db] Customers synced: ${writes.length} written, ${deletes.length} deleted`);
+  } catch (e) {
+    console.error("Error saving customers to cloud:", e);
+  }
 }

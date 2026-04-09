@@ -188,6 +188,12 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
   const [coords, setCoords] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
 
+  // Helper: update list AND immediately sync to parent
+  const updateList = (newList) => {
+    setList(newList);
+    onSave(newList);
+  };
+
   const handleGetLocation = () => {
     setGpsLoading(true);
     if ('geolocation' in navigator) {
@@ -211,7 +217,6 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
   const handleAdd = () => {
     if (!newName) return;
     
-    // Use captured coords or randomized localized ones as fail-safe
     const finalLat = coords ? coords.lat : 36.8 + (Math.random() * 0.05 - 0.025);
     const finalLng = coords ? coords.lng : 10.18 + (Math.random() * 0.05 - 0.025);
 
@@ -223,10 +228,14 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
       lng: finalLng
     };
     
-    setList(prev => [...prev, newCust]);
+    updateList([...list, newCust]);
     setNewName('');
     setNewAddress('');
     setCoords(null);
+  };
+
+  const handleDelete = (id) => {
+    updateList(list.filter(x => x.id !== id));
   };
 
   return (
@@ -270,7 +279,7 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
                     <span className="settings-item__name">{c.name}</span>
                     <span className="chip__addr" style={{ display: 'block', marginTop: 4 }}>{c.address}</span>
                   </div>
-                  <button className="settings-item__del" onClick={() => setList(list.filter(x => x.id !== c.id))}>
+                  <button className="settings-item__del" onClick={() => handleDelete(c.id)}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -279,8 +288,8 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
           </div>
         </div>
         <footer className="modal__foot">
-          <button className="btn btn-primary foot__btn" onClick={() => { onSave(list); onClose(); }}>
-            <Save size={20} /> Enregistrer
+          <button className="btn btn-primary foot__btn" onClick={onClose}>
+            <Save size={20} /> Fermer
           </button>
         </footer>
       </div>
