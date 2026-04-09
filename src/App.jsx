@@ -564,7 +564,11 @@ function App() {
                 <InvoiceView basket={basket} customer={selectedCustomer} catalog={catalog} onBack={() => setShowInvoice(false)} />
               ) : (
                 <div className="products">
-                  {catalog.map(product => {
+                  {[...catalog].sort((a, b) => {
+                    const qa = (basket[a.id]?.pieces || 0) + (basket[a.id]?.boxes || 0);
+                    const qb = (basket[b.id]?.pieces || 0) + (basket[b.id]?.boxes || 0);
+                    return qb - qa;
+                  }).map(product => {
                     const b = basket[product.id] || { pieces: 0, boxes: 0 };
                     return (
                       <div key={product.id} className="p-card">
