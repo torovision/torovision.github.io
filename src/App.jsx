@@ -3,6 +3,8 @@ import './App.css';
 import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users } from 'lucide-react';
 import Map, { Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
+import { fetchCatalogFromCloud, saveCatalogToCloud, fetchCustomersFromCloud, saveCustomersToCloud } from './db';
+import { DEFAULT_CATALOG, DEFAULT_CUSTOMERS } from './constants';
 
 // Configure MapLibre RTL Plugin for Arabic text rendering
 maplibregl.setRTLTextPlugin(
@@ -12,73 +14,6 @@ maplibregl.setRTLTextPlugin(
 );
 
 const MAPTILER_KEY = 'XJjj2pOhjNSZrecDvLx8';
-
-const IMG = (name) => `/product images/${name}`;
-
-const DEFAULT_CATALOG = [
-  { id: 'p1',  name: '1 Kg Mozzarilla Rappé',        pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('1 kg mozzarilla rappé.jpg') },
-  { id: 'p2',  name: 'Canicha',                      pricePiece: 3.800,  priceBox: 3.800,    piecesPerBox: 12, img: IMG('Canicha.png') },
-  { id: 'p3',  name: 'Fraidoux',                     pricePiece: 3.000,  priceBox: 3.000,    piecesPerBox: 12, img: IMG('Fraidoux.jpg') },
-  { id: 'p4',  name: 'Thon Sidi Ali 140g',           pricePiece: 2.900,  priceBox: 69.600,   piecesPerBox: 24, img: IMG('THON_HV_140_GR_SIDI_ALI.png') },
-  { id: 'p5',  name: 'Carrés Président',             pricePiece: 10.000, priceBox: 10.000,   piecesPerBox: 12, img: IMG('carrés president.jpg') },
-  { id: 'p6',  name: 'Goûter',                       pricePiece: 34.000, priceBox: 34.000,   piecesPerBox: 12, img: IMG('gouter.png') },
-  { id: 'p7',  name: 'Gruyère',                      pricePiece: 22.000, priceBox: 22.000,   piecesPerBox: 12, img: IMG('gruyére.png') },
-  { id: 'p8',  name: 'Harissa',                      pricePiece: 27.000, priceBox: 27.000,   piecesPerBox: 12, img: IMG('harissa.png') },
-  { id: 'p9',  name: 'Jambon de Dinde Mazraa',       pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('jambon-de-dinde mazraa.png') },
-  { id: 'p10', name: 'Jambon Maraii',                 pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('jombon maraii.jpg') },
-  { id: 'p11', name: 'Maraii Kids',                   pricePiece: 1.500,  priceBox: 42.000,   piecesPerBox: 12, img: IMG('maraii kids.png') },
-  { id: 'p12', name: 'Mozzapizza',                   pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('mozzapizza.jpg') },
-  { id: 'p13', name: 'P48',                          pricePiece: 15.000, priceBox: 180.000,  piecesPerBox: 12, img: IMG('p48.png') },
-  { id: 'p14', name: 'Rappé',                        pricePiece: 7.500,  priceBox: 7.500,    piecesPerBox: 12, img: IMG('rappé.jpg') },
-  { id: 'p15', name: 'Salami El Mazraa 600g',        pricePiece: 3.500,  priceBox: 59.500,   piecesPerBox: 12, img: IMG('salami el mazraa 600 g.png') },
-  { id: 'p16', name: 'Sardine',                      pricePiece: 2.000,  priceBox: 2.000,    piecesPerBox: 12, img: IMG('sardine.jpg') },
-  { id: 'p17', name: 'Slice',                        pricePiece: 4.500,  priceBox: 4.500,    piecesPerBox: 12, img: IMG('slice.png') },
-  { id: 'p18', name: 'Thon Sidi Ali Grand',          pricePiece: 8.500,  priceBox: 8.500,    piecesPerBox: 12, img: IMG('thon sidi ali grand.png') },
-  { id: 'p19', name: 'Thonito Thon',                 pricePiece: 2.650,  priceBox: 63.600,   piecesPerBox: 24, img: IMG('thonito thon.png') },
-  { id: 'p20', name: 'Harissa grand',                pricePiece: 2.400,  priceBox: 29.000,   piecesPerBox: 12, img: IMG('harissa grand.png') },
-  { id: 'p21', name: 'salami Royal kids',            pricePiece: 27.000, priceBox: 27.000,   piecesPerBox: 12, img: IMG('royal-kids.png') },
-  { id: 'p22', name: 'Edam cheese',                  pricePiece: 3.000,  priceBox: 42.000,   piecesPerBox: 12, img: IMG('edam cheese.png') },
-  { id: 'p23', name: 'Garlic',                       pricePiece: 10.000, priceBox: 100.000,  piecesPerBox: 10, img: IMG('Normal-White-Chinese-New-Crop-Peeled-Garlic-Wholesale-Mesh-Bag-10kg-Box-Packing-Premium-Red-Garlic-Hot-Selling-in-Tunis.avif') },
-  { id: 'p24', name: 'Cheddar 40g Land\'or',         pricePiece: 1.600,  priceBox: 64.000,   piecesPerBox: 40, img: IMG('Cheddar 40g Landor.jpg') },
-  { id: 'p25', name: 'Rappé 4 fromage',              pricePiece: 10.000, priceBox: 10.000,   piecesPerBox: 12, img: IMG('Rappé 4 fromage.png') },
-  { id: 'p26', name: 'Chamiya 5KG',                  pricePiece: 50.000, priceBox: 50.000,   piecesPerBox: 1,  img: IMG('chamiya.png') },
-  { id: 'p27', name: 'Harissa Arbi 4KG',             pricePiece: 26.000, priceBox: 26.000,   piecesPerBox: 1,  img: IMG('harissa arbi.avif') },
-  { id: 'p28', name: 'Fromage mozzarella tranché 1KG',pricePiece: 12.000, priceBox: 12.000,  piecesPerBox: 1,  img: IMG('fromage-mozzarella-tranché-isolé-sur-fond-blanc-avec-chemin-de-coupe-et-profondeur-champ-complète-213623048.webp') },
-  { id: 'p29', name: 'TARTI FRO 80',                 pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 1,  img: IMG('Tarti Frou.jpg') },
-  { id: 'p30', name: 'fromage fondu pour tartine LAND\'OR 104 g', pricePiece: 1.250, priceBox: 30.000, piecesPerBox: 24, img: IMG('front_en.36.full.jpg') },
-];
-
-/* Load catalog from localStorage or use defaults */
-function loadCatalog() {
-  try {
-    const saved = localStorage.getItem('ouni_catalog_v4');
-    if (saved) return JSON.parse(saved);
-  } catch (e) { /* ignore */ }
-  return DEFAULT_CATALOG;
-}
-
-function saveCatalog(catalog) {
-  localStorage.setItem('ouni_catalog_v4', JSON.stringify(catalog));
-}
-
-/* ─── CUSTOMERS MANAGEMENT ─── */
-const DEFAULT_CUSTOMERS = [
-  { id: 1, name: 'Boutique Alpha', lat: 36.8065, lng: 10.1815, address: 'Rue de la Liberté' },
-  { id: 2, name: 'Superette Sidi', lat: 36.8123, lng: 10.1788, address: 'Avenue Habib Bourguiba' },
-  { id: 3, name: 'Hanout Medina', lat: 36.8000, lng: 10.1650, address: 'La Medina' },
-];
-
-function loadCustomers() {
-  try {
-    const saved = localStorage.getItem('ouni_customers');
-    if (saved) return JSON.parse(saved);
-  } catch (e) { /* ignore */ }
-  return DEFAULT_CUSTOMERS;
-}
-
-function saveCustomers(customers) {
-  localStorage.setItem('ouni_customers', JSON.stringify(customers));
-}
 
 /* ─── SPLASH SCREEN ─── */
 function SplashScreen({ onFinish }) {
@@ -406,22 +341,37 @@ function InvoiceView({ basket, customer, catalog, onBack }) {
 /* ─── MAIN APP ─── */
 function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [catalog, setCatalog] = useState(loadCatalog);
+  const [dbLoading, setDbLoading] = useState(true);
+  const [catalog, setCatalog] = useState([]);
   const [isBasketOpen, setIsBasketOpen] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showManageCustomers, setShowManageCustomers] = useState(false);
-  const [customers, setCustomers] = useState(loadCustomers);
+  const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [basket, setBasket] = useState({});
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
   const geoControlRef = useRef(null);
 
-  // Persist data
-  useEffect(() => { saveCatalog(catalog); }, [catalog]);
-  useEffect(() => { saveCustomers(customers); }, [customers]);
+  // Fetch data
+  useEffect(() => {
+    async function initDB() {
+      const [catData, custData] = await Promise.all([
+        fetchCatalogFromCloud(DEFAULT_CATALOG),
+        fetchCustomersFromCloud(DEFAULT_CUSTOMERS)
+      ]);
+      setCatalog(catData);
+      setCustomers(custData);
+      setDbLoading(false);
+    }
+    initDB();
+  }, []);
+
+  // Persist data mutations
+  useEffect(() => { if (!dbLoading) saveCatalogToCloud(catalog); }, [catalog, dbLoading]);
+  useEffect(() => { if (!dbLoading) saveCustomersToCloud(customers); }, [customers, dbLoading]);
 
   const sortedCustomers = useMemo(() => {
     if (!userLocation) return customers;

@@ -1,0 +1,40 @@
+export const IMG = (name) => `/product images/${name}`;
+
+export const DEFAULT_CATALOG = [
+  { id: 'p1',  name: '1 Kg Mozzarilla Rappé',        pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('1 kg mozzarilla rappé.jpg') },
+  { id: 'p2',  name: 'Canicha',                      pricePiece: 3.800,  priceBox: 3.800,    piecesPerBox: 12, img: IMG('Canicha.png') },
+  { id: 'p3',  name: 'Fraidoux',                     pricePiece: 3.000,  priceBox: 3.000,    piecesPerBox: 12, img: IMG('Fraidoux.jpg') },
+  { id: 'p4',  name: 'Thon Sidi Ali 140g',           pricePiece: 2.900,  priceBox: 69.600,   piecesPerBox: 24, img: IMG('THON_HV_140_GR_SIDI_ALI.png') },
+  { id: 'p5',  name: 'Carrés Président',             pricePiece: 10.000, priceBox: 10.000,   piecesPerBox: 12, img: IMG('carrés president.jpg') },
+  { id: 'p6',  name: 'Goûter',                       pricePiece: 34.000, priceBox: 34.000,   piecesPerBox: 12, img: IMG('gouter.png') },
+  { id: 'p7',  name: 'Gruyère',                      pricePiece: 22.000, priceBox: 22.000,   piecesPerBox: 12, img: IMG('gruyére.png') },
+  { id: 'p8',  name: 'Harissa',                      pricePiece: 27.000, priceBox: 27.000,   piecesPerBox: 12, img: IMG('harissa.png') },
+  { id: 'p9',  name: 'Jambon de Dinde Mazraa',       pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('jambon de dinde el mazraa .png') },
+  { id: 'p10', name: 'Jambon Maraii',                pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('jambon maraii.png') },
+  { id: 'p11', name: 'Maraii Kids',                  pricePiece: 1.500,  priceBox: 42.000,   piecesPerBox: 24, img: IMG('maraii_kids.png') },
+  { id: 'p12', name: 'Mozzapizza',                   pricePiece: 12.000, priceBox: 12.000,   piecesPerBox: 12, img: IMG('mozzapizza.jpg') },
+  { id: 'p13', name: 'P48',                          pricePiece: 15.000, priceBox: 180.000,  piecesPerBox: 12, img: IMG('p48.png') },
+  { id: 'p14', name: 'Rappé',                        pricePiece: 7.500,  priceBox: 7.500,    piecesPerBox: 12, img: IMG('rappé.jpg') },
+  { id: 'p15', name: 'Salami El Mazraa 600g',        pricePiece: 3.500,  priceBox: 59.500,   piecesPerBox: 17, img: IMG('salami el mazraa 600 g.png') },
+  { id: 'p16', name: 'Sardine',                      pricePiece: 2.000,  priceBox: 2.000,    piecesPerBox: 12, img: IMG('sardine.jpg') },
+  { id: 'p17', name: 'Slice',                        pricePiece: 4.500,  priceBox: 4.500,    piecesPerBox: 12, img: IMG('slice.png') },
+  { id: 'p18', name: 'Thon Sidi Ali Grand',          pricePiece: 8.500,  priceBox: 8.500,    piecesPerBox: 12, img: IMG('thon sidi ali grand.png') },
+  { id: 'p19', name: 'Thonito Thon',                 pricePiece: 8.000,  priceBox: 8.000,    piecesPerBox: 12, img: IMG('thonito thon.png') },
+  { id: 'p20', name: 'Camenbert Président',          pricePiece: 6.500,  priceBox: 6.500,    piecesPerBox: 12, img: IMG('Camenbert président.jpg') },
+  { id: 'p21', name: 'Salami de Dinde',              pricePiece: 4.200,  priceBox: 4.200,    piecesPerBox: 12, img: IMG('salami-de-dinde.png') },
+  { id: 'p22', name: 'Gouta',                        pricePiece: 1.800,  priceBox: 1.800,    piecesPerBox: 12, img: IMG('gouta.png') },
+  { id: 'p23', name: 'Petit Suisse',                 pricePiece: 0.900,  priceBox: 0.900,    piecesPerBox: 12, img: IMG('petit_suisse.png') },
+  { id: 'p24', name: 'Royal Kids',                   pricePiece: 2.100,  priceBox: 2.100,    piecesPerBox: 12, img: IMG('royal-kids.png') },
+  { id: 'p25', name: 'Jus Fraise',                   pricePiece: 1.200,  priceBox: 1.200,    piecesPerBox: 12, img: IMG('jus_fraise.png') },
+  { id: 'p26', name: 'Jus Orange',                   pricePiece: 1.200,  priceBox: 1.200,    piecesPerBox: 12, img: IMG('jus_orange.png') },
+  { id: 'p27', name: 'Margerine 500g',               pricePiece: 3.500,  priceBox: 3.500,    piecesPerBox: 12, img: IMG('margerine.png') },
+  { id: 'p28', name: 'Fromage Carré',                pricePiece: 4.000,  priceBox: 4.000,    piecesPerBox: 12, img: IMG('fromage_carre.png') },
+  { id: 'p29', name: 'Mayonnaise 250ml',             pricePiece: 2.800,  priceBox: 2.800,    piecesPerBox: 12, img: IMG('mayonnaise.png') },
+  { id: 'p30', name: 'Ketchup 250ml',                pricePiece: 2.900,  priceBox: 2.900,    piecesPerBox: 12, img: IMG('ketchup.png') },
+];
+
+export const DEFAULT_CUSTOMERS = [
+  { id: 1, name: 'Boutique Alpha', lat: 36.8065, lng: 10.1815, address: 'Rue de la Liberté' },
+  { id: 2, name: 'Superette Sidi', lat: 36.8123, lng: 10.1788, address: 'Avenue Habib Bourguiba' },
+  { id: 3, name: 'Hanout Medina', lat: 36.8000, lng: 10.1650, address: 'La Medina' },
+];
