@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users } from 'lucide-react';
-import Map, { Marker, GeolocateControl } from 'react-map-gl/maplibre';
+import Map, { Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 
 // Configure MapLibre RTL Plugin for Arabic text rendering
@@ -416,6 +416,7 @@ function App() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [basket, setBasket] = useState({});
   const [userLocation, setUserLocation] = useState(null);
+  const [routeData, setRouteData] = useState(null);
   const geoControlRef = useRef(null);
 
   // Persist data
@@ -430,6 +431,24 @@ function App() {
       return distA - distB;
     });
   }, [customers, userLocation]);
+
+  const fetchRoute = async (client) => {
+    if (!userLocation) {
+      alert("En attente de votre position GPS locale...");
+      return;
+    }
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${userLocation.lng},${userLocation.lat};${client.lng},${client.lat}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.routes && data.routes.length > 0) {
+        setRouteData(data.routes[0].geometry);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Impossible de calculer l'itinéraire.");
+    }
+  };
 
   const updateQuantity = (productId, type, delta) => {
     setBasket(prev => {
@@ -515,6 +534,17 @@ function App() {
               </div>
             </Marker>
           ))}
+
+          {routeData && (
+            <Source id="route-source" type="geojson" data={{ type: 'Feature', properties: {}, geometry: routeData }}>
+              <Layer
+                id="route-line"
+                type="line"
+                layout={{ 'line-join': 'round', 'line-cap': 'round' }}
+                paint={{ 'line-color': '#00e5ff', 'line-width': 6, 'line-opacity': 0.8 }}
+              />
+            </Source>
+          )}
         </Map>
 
         <div className="bottom-sheet">
@@ -535,7 +565,7 @@ function App() {
                   style={{ flex: '0 0 auto', justifyContent: 'center', background: '#3b82f6', color: '#fff' }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}`, '_blank');
+                    fetchRoute(c);
                   }}
                 >
                   <Navigation size={20} />
