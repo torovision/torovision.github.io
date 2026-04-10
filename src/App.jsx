@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users, BarChart3, Clock, DollarSign } from 'lucide-react';
-import Map, { Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Marker, GeolocateControl, Source, Layer, FullscreenControl } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { fetchCatalogFromCloud, saveCatalogToCloud, fetchCustomersFromCloud, saveCustomersToCloud, saveInvoice, fetchInvoices } from './db';
 import { DEFAULT_CATALOG, DEFAULT_CUSTOMERS } from './constants';
@@ -607,6 +607,7 @@ function App() {
             positionOptions={{ enableHighAccuracy: true }} 
             onGeolocate={(e) => setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude })}
           />
+          <FullscreenControl position="top-right" />
           {customers.map(c => (
             <Marker key={c.id} longitude={c.lng} latitude={c.lat} anchor="bottom">
               <div className="pin" onClick={() => openBasket(c)}>
