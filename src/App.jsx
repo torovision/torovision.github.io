@@ -470,6 +470,7 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
   const [mapFullscreen, setMapFullscreen] = useState(false);
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
   const geoControlRef = useRef(null);
   const mapRef = useRef(null);
 
@@ -565,6 +566,17 @@ function App() {
 
   if (showSplash) return <SplashScreen onFinish={() => setShowSplash(false)} />;
 
+  const requireAdmin = (action) => {
+    if (adminUnlocked) { action(); return; }
+    const pw = prompt('Mot de passe admin :');
+    if (pw === 'Battan25') {
+      setAdminUnlocked(true);
+      action();
+    } else if (pw !== null) {
+      alert('Mot de passe incorrect.');
+    }
+  };
+
   return (
     <div className="app">
       {/* ── HEADER ── */}
@@ -574,13 +586,13 @@ function App() {
           <button className="header__btn" onClick={() => setShowDashboard(true)} title="Tableau de Bord">
             <BarChart3 size={18} />
           </button>
-          <button className="header__btn" onClick={() => setShowSettings(true)} title="Paramètres">
+          <button className="header__btn" onClick={() => requireAdmin(() => setShowSettings(true))} title="Paramètres">
             <Settings size={18} />
           </button>
-          <button className="header__btn" onClick={() => setShowManageCustomers(true)} title="Gérer Clients">
+          <button className="header__btn" onClick={() => requireAdmin(() => setShowManageCustomers(true))} title="Gérer Clients">
             <Users size={18} />
           </button>
-          <button className="header__btn" onClick={() => setShowAddProduct(true)} title="Ajouter produit">
+          <button className="header__btn" onClick={() => requireAdmin(() => setShowAddProduct(true))} title="Ajouter produit">
             <PlusCircle size={18} />
           </button>
           <button className="header__cart badge-wrap" onClick={() => openBasket()}>
