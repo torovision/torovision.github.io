@@ -612,20 +612,6 @@ function App() {
             positionOptions={{ enableHighAccuracy: true }} 
             onGeolocate={(e) => setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude })}
           />
-          {/* Custom fullscreen button (iOS compatible) */}
-          <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
-            <button 
-              onClick={() => setMapFullscreen(f => !f)}
-              style={{
-                width: 40, height: 40, borderRadius: 8,
-                background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.15)',
-                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', backdropFilter: 'blur(8px)'
-              }}
-            >
-              {mapFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-            </button>
-          </div>
           {customers.map(c => (
             <Marker key={c.id} longitude={c.lng} latitude={c.lat} anchor="bottom">
               <div className="pin" onClick={() => openBasket(c)}>
@@ -646,6 +632,22 @@ function App() {
             </Source>
           )}
         </Map>
+
+        {/* Custom fullscreen button - outside Map for visibility */}
+        <button 
+          onClick={() => setMapFullscreen(f => !f)}
+          style={{
+            position: 'absolute', top: 66, right: 12, zIndex: 60,
+            width: 44, height: 44, borderRadius: 10,
+            background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.15)',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+          }}
+          title="Plein écran"
+        >
+          {mapFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+        </button>
 
         {!mapFullscreen && (
         <div className="bottom-sheet">
