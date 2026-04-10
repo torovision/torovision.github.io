@@ -551,11 +551,16 @@ function App() {
   const openBasket = (c = null) => { if (c) setSelectedCustomer(c); setIsBasketOpen(true); setShowInvoice(false); };
 
   const handleAddProduct = useCallback((product) => {
-    setCatalog(prev => [...prev, product]);
+    setCatalog(prev => {
+      const updated = [...prev, product];
+      saveCatalogToCloud(updated);
+      return updated;
+    });
   }, []);
 
   const handleSaveCatalog = useCallback((updated) => {
     setCatalog(updated);
+    saveCatalogToCloud(updated);
   }, []);
 
   if (showSplash) return <SplashScreen onFinish={() => setShowSplash(false)} />;
