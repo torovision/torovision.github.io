@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import './App.css';
-import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users } from 'lucide-react';
+import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users, BarChart3, Clock, DollarSign } from 'lucide-react';
 import Map, { Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
-import { fetchCatalogFromCloud, saveCatalogToCloud, fetchCustomersFromCloud, saveCustomersToCloud } from './db';
+import { fetchCatalogFromCloud, saveCatalogToCloud, fetchCustomersFromCloud, saveCustomersToCloud, saveInvoice, fetchInvoices } from './db';
 import { DEFAULT_CATALOG, DEFAULT_CUSTOMERS } from './constants';
 
 // Configure MapLibre RTL Plugin for Arabic text rendering
@@ -298,7 +298,7 @@ function ManageCustomersModal({ customers, onClose, onSave }) {
 }
 
 /* ─── INVOICE / FACTURE VIEW ─── */
-function InvoiceView({ basket, customer, catalog, onBack }) {
+function InvoiceView({ basket, customer, catalog, onBack, onSaveInvoice }) {
   const lines = Object.entries(basket).map(([id, qty]) => {
     const p = catalog.find(x => x.id === id);
     if (!p) return null;
@@ -307,13 +307,30 @@ function InvoiceView({ basket, customer, catalog, onBack }) {
   }).filter(Boolean);
 
   const total = lines.reduce((s, l) => s + l.subtotal, 0);
+  const [invoiceNum] = useState(() => Math.floor(Math.random() * 9000 + 1000));
+  const [saved, setSaved] = useState(false);
   const now = new Date();
+
+  const handleSave = () => {
+    if (saved) return;
+    const invoice = {
+      invoiceNum,
+      customer: customer?.name || 'Sans client',
+      items: lines.map(l => ({ name: l.name, pieces: l.pieces, boxes: l.boxes, subtotal: l.subtotal })),
+      total,
+      timestamp: Date.now(),
+      date: now.toLocaleDateString('fr-TN'),
+      time: now.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })
+    };
+    onSaveInvoice(invoice);
+    setSaved(true);
+  };
 
   return (
     <div className="invoice fade-in">
       <div className="invoice__header">
         <h2 className="invoice__brand">Ouni</h2>
-        <p className="invoice__meta">Facture #{Math.floor(Math.random() * 9000 + 1000)}</p>
+        <p className="invoice__meta">Facture #{invoiceNum}</p>
         <p className="invoice__meta">{now.toLocaleDateString('fr-TN')} — {now.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })}</p>
         {customer && <p className="invoice__client">Client: {customer.name}</p>}
       </div>
@@ -341,7 +358,97 @@ function InvoiceView({ basket, customer, catalog, onBack }) {
 
       <div className="invoice__actions">
         <button className="btn btn-secondary" onClick={onBack}><ArrowLeft size={16} /> Retour</button>
+        <button className="btn" style={{ backgroundColor: saved ? '#10b981' : '#3b82f6', color: '#fff' }} onClick={handleSave}>
+          <Save size={16} /> {saved ? 'Enregistré ✅' : 'Enregistrer'}
+        </button>
         <button className="btn btn-primary" onClick={() => window.print()}><Printer size={16} /> Imprimer</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── DASHBOARD MODAL ─── */
+function DashboardModal({ onClose }) {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchInvoices().then(data => { setInvoices(data); setLoading(false); });
+  }, []);
+
+  const today = new Date().toLocaleDateString('fr-TN');
+  const todayInvoices = invoices.filter(inv => inv.date === today);
+  const todayTotal = todayInvoices.reduce((s, inv) => s + inv.total, 0);
+  const allTimeTotal = invoices.reduce((s, inv) => s + inv.total, 0);
+
+  return (
+    <div className="overlay fade-in" onClick={onClose}>
+      <div className="modal slide-up" onClick={e => e.stopPropagation()}>
+        <div className="sheet__handle" />
+        <header className="modal__head">
+          <h2>Tableau de Bord</h2>
+          <button className="close-btn" onClick={onClose}><X size={22} /></button>
+        </header>
+        <div className="modal__body">
+          {loading ? <p style={{ textAlign: 'center', color: '#94a3b8', padding: 40 }}>Chargement...</p> : (
+            <>
+              {/* Stats Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                <div style={{ background: 'linear-gradient(135deg, #1e40af, #3b82f6)', borderRadius: 16, padding: 20, color: '#fff' }}>
+                  <DollarSign size={24} style={{ opacity: 0.7, marginBottom: 8 }} />
+                  <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: 4 }}>Revenu Aujourd'hui</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{todayTotal.toFixed(3)}</p>
+                  <p style={{ fontSize: '0.7rem', opacity: 0.7 }}>TND</p>
+                </div>
+                <div style={{ background: 'linear-gradient(135deg, #065f46, #10b981)', borderRadius: 16, padding: 20, color: '#fff' }}>
+                  <FileText size={24} style={{ opacity: 0.7, marginBottom: 8 }} />
+                  <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: 4 }}>Factures Aujourd'hui</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{todayInvoices.length}</p>
+                  <p style={{ fontSize: '0.7rem', opacity: 0.7 }}>factures</p>
+                </div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Total Général ({invoices.length} factures)</span>
+                <span style={{ color: '#60a5fa', fontWeight: 700, fontSize: '1.1rem' }}>{allTimeTotal.toFixed(3)} TND</span>
+              </div>
+
+              {/* Invoice History */}
+              <h3 className="sheet__title" style={{ marginBottom: 12 }}><Clock size={14} /> Historique des Factures</h3>
+              <div style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+                {invoices.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: '#64748b', padding: 20 }}>Aucune facture enregistrée</p>
+                ) : (
+                  invoices.map((inv, i) => (
+                    <div key={inv.id || i} style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      borderRadius: 12,
+                      padding: 14,
+                      marginBottom: 8,
+                      border: '1px solid rgba(255,255,255,0.06)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.9rem' }}>#{inv.invoiceNum}</span>
+                        <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.95rem' }}>{inv.total.toFixed(3)} TND</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                        <span>{inv.customer}</span>
+                        <span>{inv.date} {inv.time}</span>
+                      </div>
+                      <div style={{ marginTop: 6, fontSize: '0.7rem', color: '#475569' }}>
+                        {inv.items?.map((it, j) => <span key={j} style={{ marginRight: 8 }}>{it.name} ({it.pieces > 0 ? `${it.pieces}pc` : ''}{it.pieces > 0 && it.boxes > 0 ? '+' : ''}{it.boxes > 0 ? `${it.boxes}bx` : ''})</span>)}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
+        <footer className="modal__foot">
+          <button className="btn btn-primary foot__btn" onClick={onClose}>
+            <X size={20} /> Fermer
+          </button>
+        </footer>
       </div>
     </div>
   );
@@ -357,6 +464,7 @@ function App() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showManageCustomers, setShowManageCustomers] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [basket, setBasket] = useState({});
@@ -458,6 +566,9 @@ function App() {
       <header className="header fade-in">
         <div className="header__brand"><img src="/logo.png" alt="Ouni Logo" style={{ width: 24, height: 24, objectFit: 'contain' }} /><span>Ouni</span></div>
         <div className="header__actions">
+          <button className="header__btn" onClick={() => setShowDashboard(true)} title="Tableau de Bord">
+            <BarChart3 size={18} />
+          </button>
           <button className="header__btn" onClick={() => setShowSettings(true)} title="Paramètres">
             <Settings size={18} />
           </button>
@@ -561,7 +672,7 @@ function App() {
 
             <div className="modal__body">
               {showInvoice ? (
-                <InvoiceView basket={basket} customer={selectedCustomer} catalog={catalog} onBack={() => setShowInvoice(false)} />
+                <InvoiceView basket={basket} customer={selectedCustomer} catalog={catalog} onBack={() => setShowInvoice(false)} onSaveInvoice={saveInvoice} />
               ) : (
                 <div className="products">
                   {[...catalog].sort((a, b) => {
@@ -638,6 +749,11 @@ function App() {
       {/* ── MANAGE CUSTOMERS MODAL ── */}
       {showManageCustomers && (
         <ManageCustomersModal customers={customers} onClose={() => setShowManageCustomers(false)} onSave={setCustomers} />
+      )}
+
+      {/* ── DASHBOARD MODAL ── */}
+      {showDashboard && (
+        <DashboardModal onClose={() => setShowDashboard(false)} />
       )}
     </div>
   );

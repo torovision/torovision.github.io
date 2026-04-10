@@ -1,5 +1,5 @@
 import { db, hasFirebase } from './firebase';
-import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, doc, deleteDoc, addDoc, query, orderBy } from 'firebase/firestore';
 
 export async function fetchCatalogFromCloud(defaultCatalog) {
   if (!hasFirebase) {
@@ -95,5 +95,43 @@ export async function saveCustomersToCloud(customers) {
     console.log(`[db] Customers synced: ${writes.length} written, ${deletes.length} deleted`);
   } catch (e) {
     console.error("Error saving customers to cloud:", e);
+  }
+}
+
+export async function saveInvoice(invoice) {
+  if (!hasFirebase) {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ouni_invoices') || '[]');
+      saved.unshift(invoice);
+      localStorage.setItem('ouni_invoices', JSON.stringify(saved));
+    } catch (e) {}
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, 'invoices'), invoice);
+    console.log("[db] Invoice saved to cloud");
+  } catch (e) {
+    console.error("Error saving invoice:", e);
+  }
+}
+
+export async function fetchInvoices() {
+  if (!hasFirebase) {
+    try {
+      return JSON.parse(localStorage.getItem('ouni_invoices') || '[]');
+    } catch (e) {}
+    return [];
+  }
+
+  try {
+    const snap = await getDocs(collection(db, 'invoices'));
+    const invoices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Sort by timestamp descending (newest first)
+    invoices.sort((a, b) => b.timestamp - a.timestamp);
+    return invoices;
+  } catch (e) {
+    console.error("Error fetching invoices:", e);
+    return [];
   }
 }
