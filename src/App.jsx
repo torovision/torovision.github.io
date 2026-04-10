@@ -311,8 +311,8 @@ function InvoiceView({ basket, customer, catalog, onBack, onSaveInvoice }) {
   const [saved, setSaved] = useState(false);
   const now = new Date();
 
-  const handleSave = () => {
-    if (saved) return;
+  // Auto-save invoice to Firebase on generation
+  useEffect(() => {
     const invoice = {
       invoiceNum,
       customer: customer?.name || 'Sans client',
@@ -322,9 +322,8 @@ function InvoiceView({ basket, customer, catalog, onBack, onSaveInvoice }) {
       date: now.toLocaleDateString('fr-TN'),
       time: now.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })
     };
-    onSaveInvoice(invoice);
-    setSaved(true);
-  };
+    onSaveInvoice(invoice).then(() => setSaved(true));
+  }, []); // Only on mount
 
   return (
     <div className="invoice fade-in">
@@ -358,9 +357,9 @@ function InvoiceView({ basket, customer, catalog, onBack, onSaveInvoice }) {
 
       <div className="invoice__actions">
         <button className="btn btn-secondary" onClick={onBack}><ArrowLeft size={16} /> Retour</button>
-        <button className="btn" style={{ backgroundColor: saved ? '#10b981' : '#3b82f6', color: '#fff' }} onClick={handleSave}>
-          <Save size={16} /> {saved ? 'Enregistré ✅' : 'Enregistrer'}
-        </button>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: saved ? '#10b981' : '#94a3b8', fontSize: '0.85rem', fontWeight: 600 }}>
+          <Save size={16} /> {saved ? 'Enregistré ✅' : 'Sauvegarde...'}
+        </span>
         <button className="btn btn-primary" onClick={() => window.print()}><Printer size={16} /> Imprimer</button>
       </div>
     </div>
