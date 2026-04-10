@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import './App.css';
-import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users, BarChart3, Clock, DollarSign } from 'lucide-react';
-import Map, { Marker, GeolocateControl, Source, Layer, FullscreenControl } from 'react-map-gl/maplibre';
+import { ShoppingCart, MapPin, Plus, Minus, X, Trash2, ArrowLeft, Navigation, FileText, Printer, Settings, PlusCircle, Save, ImagePlus, Pencil, Users, BarChart3, Clock, DollarSign, Maximize2, Minimize2 } from 'lucide-react';
+import Map, { Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { fetchCatalogFromCloud, saveCatalogToCloud, fetchCustomersFromCloud, saveCustomersToCloud, saveInvoice, fetchInvoices } from './db';
 import { DEFAULT_CATALOG, DEFAULT_CUSTOMERS } from './constants';
@@ -469,6 +469,7 @@ function App() {
   const [basket, setBasket] = useState({});
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
+  const [mapFullscreen, setMapFullscreen] = useState(false);
   const geoControlRef = useRef(null);
   const mapRef = useRef(null);
 
@@ -567,7 +568,7 @@ function App() {
   return (
     <div className="app">
       {/* ── HEADER ── */}
-      <header className="header fade-in">
+      <header className="header fade-in" style={mapFullscreen ? { display: 'none' } : {}}>
         <div className="header__brand"><img src="/logo.png" alt="Ouni Logo" style={{ width: 24, height: 24, objectFit: 'contain' }} /><span>Ouni</span></div>
         <div className="header__actions">
           <button className="header__btn" onClick={() => setShowDashboard(true)} title="Tableau de Bord">
@@ -611,7 +612,20 @@ function App() {
             positionOptions={{ enableHighAccuracy: true }} 
             onGeolocate={(e) => setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude })}
           />
-          <FullscreenControl position="top-right" />
+          {/* Custom fullscreen button (iOS compatible) */}
+          <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
+            <button 
+              onClick={() => setMapFullscreen(f => !f)}
+              style={{
+                width: 40, height: 40, borderRadius: 8,
+                background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', backdropFilter: 'blur(8px)'
+              }}
+            >
+              {mapFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          </div>
           {customers.map(c => (
             <Marker key={c.id} longitude={c.lng} latitude={c.lat} anchor="bottom">
               <div className="pin" onClick={() => openBasket(c)}>
@@ -633,6 +647,7 @@ function App() {
           )}
         </Map>
 
+        {!mapFullscreen && (
         <div className="bottom-sheet">
           <div className="sheet__handle" />
           <h3 className="sheet__title">Clients</h3>
@@ -660,6 +675,7 @@ function App() {
             ))}
           </div>
         </div>
+        )}
       </main>
 
       {/* ── POS MODAL ── */}
